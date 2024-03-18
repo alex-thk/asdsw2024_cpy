@@ -236,3 +236,4 @@ if __name__ == '__main__':
     finally:
         if TCPServerSocket:
             TCPServerSocket.close()
+            # per connettermi faccio runnare il broker e poi mi connetto con telnet
