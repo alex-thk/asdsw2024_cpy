@@ -5,6 +5,8 @@ import os
 import time
 from multiprocessing import Process, Array
 
+# in questo caso stiamo unsando dei processi che coinvolgono shared memory
+
 # Process1 logic
 def process1(shared):
     process1_logger = logging.getLogger('process1')
@@ -61,8 +63,9 @@ def main():
     parent_logger.info(f"Pid:{os.getpid()}")
 
     # Setup shared memory using Array (multiprocessing)
-    arr = Array('i', [-1] * 10)
-    #arr2 = Array('i', [-1] * 10)
+    arr = Array('i', [-1] * 10) # se il valore di memoria rimane -1 allora vuol dire che non è stato ancora scritto niente sulla memoria condivisa
+                                # infatti si scrive un qualcosa di positivo
+    arr2 = Array('i', [-1] * 10)
 
     # Setup processes
     procs = [Process(target=process1, args=(arr,)), Process(target=process2, args=(arr,))]
@@ -76,7 +79,7 @@ def main():
         proc.join()
 
 # Setup simple logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO) # infatti in questo caso il logging è a livello informativo (come prima)
 
 # Execute main
 if __name__ == '__main__':

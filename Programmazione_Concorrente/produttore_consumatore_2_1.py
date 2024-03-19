@@ -5,8 +5,9 @@ from random import randrange
 from sys import argv
 
 mutex = Lock()
-sharedBuffer = [] 
+sharedBuffer = []
 produttoriRunning = 0
+
 
 def safeWrite(row):
     global sharedBuffer
@@ -15,6 +16,7 @@ def safeWrite(row):
     mutex.acquire()
     sharedBuffer.append(row)
     mutex.release()
+
 
 def safeRead():
     global sharedBuffer
@@ -27,19 +29,19 @@ def safeRead():
 
     return row
 
+
 def thread_produttore(nome, nomefile):
     global produttoriRunning
 
     produttoriRunning += 1
 
     logging.info("{} sta partendo ...".format(nome))
-    #logging.info("%s sta partendo ...", nome)
+    # logging.info("%s sta partendo ...", nome)
 
     with open(nomefile, 'r') as f:
         row = f.readline()
         while row:
             safeWrite(row[:-1])
-            logging.info("{} ha letto dalla memoria condivisa la riga [{}]". format(nome, row[:-1])) 
             time.sleep(randrange(2))
             row = f.readline()
 
@@ -56,9 +58,9 @@ def thread_consumatore(nome):
     while produttoriRunning > 0 or len(sharedBuffer) > 0:
         if len(sharedBuffer) > 0:
             row = safeRead()
-            logging.info("{} ha letto dalla memoria condivisa la riga [{}]". format(nome, row))
+            logging.info("{} ha letto dalla memoria condivisa la riga [{}]".format(nome, row))
         else:
-            time.sleep(randrange(2,5))
+            time.sleep(randrange(2, 5))
 
     logging.info("{} sta terminando ...".format(nome))
 
@@ -68,19 +70,24 @@ if __name__ == "__main__":
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
     logging.info("Main       :  before creating threads")
-    
-    produttore1 = Thread(target=thread_produttore,  args=('Produttore1', argv[1],))
-    produttore2 = Thread(target=thread_produttore,  args=('Produttore2', argv[2],))
+
+    # questo è il caso in cui ho 2 flussi di produzione sulla stessa zona del programma, 2 produttori e un consumatore
+    # tutti e 3 hanno la stessa memoria perchè sono tutte all'interno dello stesso processo
+
+    # in ogni caso però i thread hanno zone di stack separate.
+    produttore1 = Thread(target=thread_produttore, args=('Produttore1', argv[1],))
+    produttore2 = Thread(target=thread_produttore, args=('Produttore2', argv[2],))
     consumatore = Thread(target=thread_consumatore, args=('Consumatore',))
-    
+
     logging.info("Main       :  before running threads")
 
     produttore1.start()
     produttore2.start()
-    time.sleep(0.1)
     consumatore.start()
-    
+
     logging.info("Main       :  wait for the threads to finish")
+    # NOTA INTERESSANTE questa è una stampa che viene fatta in modo asincrono, quindi non so quando verrà stampata.
+    # dipende tutto dallo schedulatore e da quando il thread viene eseguito
 
     produttore1.join()
     produttore2.join()

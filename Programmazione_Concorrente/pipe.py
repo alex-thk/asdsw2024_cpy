@@ -8,11 +8,12 @@ from multiprocessing import Process
 
 # Process1 logic
 def process1(pipe):
-    process1_logger = logging.getLogger('process1')
+    process1_logger = logging.getLogger('process1') #questo è un oggetto di tipo logger, usato per loggare le informazioni su schermo
+    # in questo caso si fa un log a livello informativo
     process1_logger.info(f"Pid:{os.getpid()}")
 
     # Open the file descriptor
-    file = os.fdopen(pipe.fileno(), 'w')
+    file = os.fdopen(pipe.fileno(), 'w') #aperta la pipe in scrittura
     process1_logger.info("Opened file descriptor")
 
     # Write 10 entries
@@ -44,7 +45,7 @@ def process2(pipe):
     process2_logger.info(f"Pid:{os.getpid()}")
 
     # Open the file descriptor
-    file = os.fdopen(pipe.fileno(), 'r')
+    file = os.fdopen(pipe.fileno(), 'r') # qui la pipe viene aperta in lettura
     process2_logger.info("Opened file descriptor")
 
     # Expect 10 entries
@@ -77,6 +78,8 @@ def main():
     r, w = multiprocessing.Pipe(False)
 
     # Setup processes
+    # al processo 1 viene passata la pipe in scrittura
+    # al processo 2 viene passata la pipe in lettura
     procs = [Process(target=process1, args=(w,)), Process(target=process2, args=(r,))]
 
     # Start processes
@@ -93,3 +96,6 @@ logging.basicConfig(level=logging.INFO)
 # Execute main
 if __name__ == '__main__':
     main()
+
+# le pipe servono per trasferire informazioni da un processo ad un altro processo in modo che i processi possano
+# comunicare

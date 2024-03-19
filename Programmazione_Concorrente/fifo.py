@@ -9,7 +9,7 @@ from multiprocessing import Process
 def process1():
     process1_logger = logging.getLogger('process1')
     process1_logger.info(f"Pid:{os.getpid()}")
-    fifo = '/tmp/process_fifo.txt'
+    fifo = '/tmp/process_fifo.txt' # creo un file fifo dove scrivo le informazioni
 
     # Create a fifo, os.mkfifo will block until there is a reader (process2)
     os.mkfifo(fifo)
@@ -25,13 +25,13 @@ def process1():
             try:
                 process1_logger.info(f"Writing {int(i)}")
                 file.write(f"{i}\n")
-                file.flush()
+                file.flush() # il flush si usa perchè tende ad evitare la bufferizzazione in memoria. Scrivere su un file è oneroso
+                            # il gestore delle risorse (os) tende a bufferizzare le informazioni in memoria e poi a scriverle su file
+                            # il flush fa si che le informazioni vengano scritte subito su file e non in memoria dentro un buffer.
+                            # in generale operazioni che comportano la scrittura su memoria (disco) è molto onerosa.
                 break
             except:
                 pass
-
-        if (i % 6) == 0:
-            time.sleep(5)
 
     # Clean up fifo
     file.close()
